@@ -1,0 +1,8 @@
+﻿<Application>
+  <Menus>
+    <action type="add">
+      <Menu Checked="0" Enabled="1" FatherUID="11520" Image="" String="Subfamilias Huryza" Type="1" UniqueID="EXO-MnSubfam"></Menu>
+     </action>
+  </Menus>
+</Application>
+
