@@ -83,7 +83,6 @@ Public Class EXO_OITM
                             End Select
                     End Select
                 End If
-
             Else
                 If infoEvento.BeforeAction = False Then
                     Select Case infoEvento.FormTypeEx
@@ -111,8 +110,6 @@ Public Class EXO_OITM
                                         GC.Collect()
                                         Return False
                                     End If
-
-
                             End Select
                     End Select
                 End If
@@ -146,41 +143,33 @@ Public Class EXO_OITM
                             Case SAPbouiCOM.BoEventTypes.et_FORM_DATA_ADD
 
                         End Select
-
                 End Select
-
             Else
                 Select Case infoEvento.FormTypeEx
                     Case "150"
                         Select Case infoEvento.EventType
-
                             Case SAPbouiCOM.BoEventTypes.et_FORM_DATA_UPDATE
                                 If infoEvento.ActionSuccess Then
 
                                 End If
-
                             Case SAPbouiCOM.BoEventTypes.et_FORM_DATA_ADD
                                 If infoEvento.ActionSuccess Then
 
 
                                 End If
-
                             Case SAPbouiCOM.BoEventTypes.et_FORM_DATA_LOAD
                                 If infoEvento.ActionSuccess Then
                                     oForm = objGlobal.SBOApp.Forms.Item(infoEvento.FormUID)
 
                                     'If oForm.Visible = True Then
                                     If CargaComboSubFam(oForm) = False Then
-                                            Return False
-                                        End If
-
-
+                                        Return False
+                                    End If
 
                                     ' End If
                                 End If
                         End Select
                 End Select
-
             End If
 
             Return MyBase.SBOApp_FormDataEvent(infoEvento)
@@ -265,7 +254,6 @@ Public Class EXO_OITM
                         'cargarSUBFAMLIAS
                         CargaComboSubFam(oForm)
                     End If
-
                 Case "cmbSubFam"
                     If pVal.ItemChanged = True Then
                         'cargarFABRICANTE
@@ -274,7 +262,6 @@ Public Class EXO_OITM
                         End If
 
                     End If
-
             End Select
 
             EventHandler_ComboSelect_After = True
