@@ -239,6 +239,7 @@ Public Class EXO_OITM
         End Try
     End Function
 
+
     Private Function EventHandler_ComboSelect_After(ByRef pVal As ItemEvent) As Boolean
         Dim oForm As SAPbouiCOM.Form = Nothing
 

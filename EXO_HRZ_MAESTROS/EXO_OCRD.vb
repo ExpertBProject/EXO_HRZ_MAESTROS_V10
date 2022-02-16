@@ -130,13 +130,6 @@ Public Class EXO_OCRD
             If pVal.ItemUID = "41" Then
                 Comprobar_CIF(oForm)
             End If
-            If oForm.Visible = True Then
-                ' Comprobamos el comisionista 2 AgentCode
-                Dim sComisionista As String = oForm.DataSources.DBDataSources.Item("OCRD").GetValue("AgentCode", 0).ToUpper
-                If sComisionista = "" Then
-                    CType(oForm.Items.Item("228").Specific, SAPbouiCOM.ComboBox).Select("NINGUNO", SAPbouiCOM.BoSearchKey.psk_ByValue)
-                End If
-            End If
 
             EventHandler_VALIDATE_Before = True
 
