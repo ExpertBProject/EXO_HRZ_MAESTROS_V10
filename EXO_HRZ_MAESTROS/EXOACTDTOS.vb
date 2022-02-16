@@ -628,17 +628,18 @@ Public Class EXOACTDTOS
 
             CargarGrid(oForm)
         Catch exCOM As System.Runtime.InteropServices.COMException
-            If objGlobal.compañia.InTransaction = True Then
-                objGlobal.compañia.EndTransaction(SAPbobsCOM.BoWfTransOpt.wf_RollBack)
-                objGlobal.SBOApp.StatusBar.SetText("Error: " & exCOM.Message, SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Success)
-                Throw exCOM
-            End If
+            'If objGlobal.compañia.InTransaction = True Then
+            '    objGlobal.compañia.EndTransaction(SAPbobsCOM.BoWfTransOpt.wf_RollBack)
+            '    objGlobal.SBOApp.StatusBar.SetText("Error: " & exCOM.Message, SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Success)
+            '    
+            'End If
+            Throw exCOM
         Catch ex As Exception
-            If objGlobal.compañia.InTransaction = True Then
-                objGlobal.compañia.EndTransaction(SAPbobsCOM.BoWfTransOpt.wf_RollBack)
-                'End If
-                objGlobal.SBOApp.StatusBar.SetText("Error: " & ex.Message, SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Success)
-            End If
+            'If objGlobal.compañia.InTransaction = True Then
+            '    objGlobal.compañia.EndTransaction(SAPbobsCOM.BoWfTransOpt.wf_RollBack)
+            '    'End If
+            '    objGlobal.SBOApp.StatusBar.SetText("Error: " & ex.Message, SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Success)
+            'End If
             Throw ex
         Finally
 
