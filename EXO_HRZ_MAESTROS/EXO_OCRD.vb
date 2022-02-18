@@ -126,7 +126,7 @@ Public Class EXO_OCRD
         Dim sCIF As String = ""
         Try
 
-            If pVal.ItemUID = "41" Then
+            If pVal.ItemUID = "41" And (oForm.Mode = BoFormMode.fm_ADD_MODE Or oForm.Mode = BoFormMode.fm_EDIT_MODE) Then
                 Comprobar_CIF(oForm)
             End If
 
