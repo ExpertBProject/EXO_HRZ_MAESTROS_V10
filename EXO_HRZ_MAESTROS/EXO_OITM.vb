@@ -202,12 +202,13 @@ Public Class EXO_OITM
 
                 '
                 oItem = oForm.Items.Add("cmbSubFam", BoFormItemTypes.it_COMBO_BOX)
-                oItem.Top = oForm.Items.Item("162").Top + 15
-                oItem.Left = oForm.Items.Item("162").Left
-                oItem.Height = oForm.Items.Item("162").Height
-                oItem.Width = oForm.Items.Item("162").Width * 2
-                oItem.FromPane = 6
-                oItem.ToPane = 6
+                oItem.Top = oForm.Items.Item("39").Top
+                oItem.Left = oForm.Items.Item("107").Left
+                oItem.Height = oForm.Items.Item("39").Height
+                oItem.Width = oForm.Items.Item("39").Width + 50
+                oItem.LinkTo = "107"
+                oItem.FromPane = 0
+                oItem.ToPane = 0
 
 
                 CType(oItem.Specific, SAPbouiCOM.ComboBox).DataBind.SetBound(True, "OITM", "U_EXO_SUBFAM")
@@ -215,13 +216,13 @@ Public Class EXO_OITM
                 CType(oItem.Specific, SAPbouiCOM.ComboBox).Item.DisplayDesc = True
 
                 oItem = oForm.Items.Add("lblSubFam", BoFormItemTypes.it_STATIC)
-                oItem.Top = oForm.Items.Item("161").Top + 15
-                oItem.Left = oForm.Items.Item("161").Left
-                oItem.Height = oForm.Items.Item("161").Height
-                oItem.Width = oForm.Items.Item("161").Width
-                oItem.LinkTo = "cmbSubFam"
-                oItem.FromPane = 6
-                oItem.ToPane = 6
+                oItem.Top = oForm.Items.Item("40").Top
+                oItem.Left = oForm.Items.Item("106").Left
+                oItem.Height = oForm.Items.Item("106").Height
+                oItem.Width = oForm.Items.Item("106").Width
+                oItem.LinkTo = "106"
+                oItem.FromPane = 0
+                oItem.ToPane = 0
                 CType(oItem.Specific, SAPbouiCOM.StaticText).Caption = "Subfamilia"
 
             End If
@@ -332,7 +333,7 @@ Public Class EXO_OITM
         Dim oRs As SAPbobsCOM.Recordset = CType(objGlobal.compañia.GetBusinessObject(SAPbobsCOM.BoObjectTypes.BoRecordset), SAPbobsCOM.Recordset)
         Try
 
-            sSQL = "SELECT t0.""DocEntry"", T0.""U_EXO_FABDES"" || '-' || T0.""U_EXO_DESSUBFAM"" ""Subfamlia"",T0.""U_EXO_FABDES"" FROM ""RODAMIENTOS_HURYZA"".""@EXO_FAMSUBFAM""  T0" _
+            sSQL = "SELECT t0.""DocEntry"", T0.""U_EXO_FABDES"" || '-' || T0.""U_EXO_DESSUBFAM"" ""Subfamlia"",T0.""U_EXO_FABDES"" FROM ""@EXO_FAMSUBFAM""  T0" _
                 & " WHERE  T0.""DocEntry"" ='" & CType(oForm.Items.Item("cmbSubFam").Specific, SAPbouiCOM.ComboBox).Selected.Value & "'"
             oRs.DoQuery(sSQL)
 
