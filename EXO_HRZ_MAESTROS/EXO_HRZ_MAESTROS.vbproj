@@ -157,6 +157,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="EXOACTDTOS.vb" />
+    <Compile Include="EXOTIPOFAM.vb" />
     <Compile Include="EXOSUBFAM.vb" />
     <Compile Include="EXO_OCRD.vb" />
     <Compile Include="EXO_OITM.vb" />
@@ -250,6 +251,12 @@
       <Isolated>False</Isolated>
       <EmbedInteropTypes>True</EmbedInteropTypes>
     </COMReference>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Pantallas\UDO_EXO_TIPOFAM.srf" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="SQL\procedimiento.sql" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.VisualBasic.targets" />
   <PropertyGroup>

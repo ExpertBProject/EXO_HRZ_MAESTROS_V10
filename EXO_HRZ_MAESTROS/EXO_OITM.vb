@@ -25,6 +25,11 @@ Public Class EXO_OITM
             objGlobal.refDi.comunes.LoadBDFromXML(sXML)
             objGlobal.SBOApp.StatusBar.SetText("Validando: UDO_EXO_OADMINTER", SAPbouiCOM.BoMessageTime.bmt_Medium, SAPbouiCOM.BoStatusBarMessageType.smt_Success)
             res = objGlobal.SBOApp.GetLastBatchResults
+
+            sXML = objGlobal.funciones.leerEmbebido(Me.GetType(), "UDO_EXO_TIPOFAM.xml")
+            objGlobal.refDi.comunes.LoadBDFromXML(sXML)
+            objGlobal.SBOApp.StatusBar.SetText("Validando: UDO_EXO_TIPOFAM", SAPbouiCOM.BoMessageTime.bmt_Medium, SAPbouiCOM.BoStatusBarMessageType.smt_Success)
+            res = objGlobal.SBOApp.GetLastBatchResults
         End If
     End Sub
     Public Overrides Function filtros() As SAPbouiCOM.EventFilters
@@ -254,6 +259,7 @@ Public Class EXO_OITM
                     If pVal.ItemChanged = True Then
                         'cargarSUBFAMLIAS
                         CargaComboSubFam(oForm)
+                        AsignarPropiedad(oForm)
                     End If
                 Case "cmbSubFam"
                     If pVal.ItemChanged = True Then
@@ -273,6 +279,48 @@ Public Class EXO_OITM
             Throw ex
         Finally
             EXO_CleanCOM.CLiberaCOM.Form(oForm)
+        End Try
+    End Function
+    Private Function AsignarPropiedad(ByRef oForm As SAPbouiCOM.Form) As Boolean
+        Dim sCodArt As String = ""
+        Dim sGrupoArt As String = ""
+        Dim sSql As String = ""
+        Dim sPropiedad As String = ""
+        Dim oChk As CheckBox
+        Dim oRs As SAPbobsCOM.Recordset = CType(objGlobal.compañia.GetBusinessObject(SAPbobsCOM.BoObjectTypes.BoRecordset), SAPbobsCOM.Recordset)
+        AsignarPropiedad = False
+
+        Try
+            sGrupoArt = CType(oForm.Items.Item("39").Specific, SAPbouiCOM.ComboBox).Selected.Value
+            sSql = "SELECT T0.""ItmsGrpCod"", T0.""ItmsGrpNam"",T1.""U_EXO_PROPIEDAD"" 
+            FROM OITB T0 
+            LEFT OUTER JOIN ""@EXO_TIPOFAM""  T1 ON T0.""U_EXO_TIPFAM"" = T1.""Code""
+            WHERE T0.""ItmsGrpCod""='" & sGrupoArt & "'
+            ORDER BY T0.""ItmsGrpNam"""
+            oRs.DoQuery(sSql)
+            If oRs.RecordCount > 0 Then
+                sPropiedad = oRs.Fields.Item("U_EXO_PROPIEDAD").Value.ToString
+                If sPropiedad <> "" Then
+                    'marcar propiead
+                    'RECORRER MATRIX
+                    CType(oForm.Items.Item("11").Specific, SAPbouiCOM.Folder).Select()
+                    For i As Integer = 1 To CType(oForm.Items.Item("129").Specific, SAPbouiCOM.Matrix).RowCount
+                        If CInt(sPropiedad) = i Then
+                            oChk = CType(CType(oForm.Items.Item("129").Specific, SAPbouiCOM.Matrix).Columns.Item("2").Cells.Item(i).Specific, CheckBox)
+                            oChk.Checked = True
+                        End If
+                    Next
+                End If
+            End If
+
+
+            AsignarPropiedad = True
+        Catch exCOM As System.Runtime.InteropServices.COMException
+            Throw exCOM
+        Catch ex As Exception
+            Throw ex
+        Finally
+            EXO_CleanCOM.CLiberaCOM.liberaCOM(CType(oRs, Object))
         End Try
     End Function
     Private Function CargaComboSubFam(ByRef oForm As SAPbouiCOM.Form) As Boolean
@@ -338,6 +386,7 @@ Public Class EXO_OITM
             oRs.DoQuery(sSQL)
 
             If oRs.RecordCount >= 0 Then
+
                 If oRs.Fields.Item("U_EXO_FABDES").Value.ToString <> "" Then
                     CType(oForm.Items.Item("114").Specific, SAPbouiCOM.ComboBox).Select(oRs.Fields.Item("U_EXO_FABDES").Value.ToString, BoSearchKey.psk_ByValue)
                 End If
