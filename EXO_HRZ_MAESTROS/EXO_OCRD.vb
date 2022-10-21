@@ -480,39 +480,42 @@ Public Class EXO_OCRD
                             Exit Function
                         End If
                     End If
-                    CType(oform.Items.Item("3").Specific, SAPbouiCOM.Folder).Select()
-                    'al crear un IC marcar la facturacion inmediata, 
-
-                    'y verificar que siempre una de las 3 está marcada y solo una
-                    'T0."QryGroup1", T0."QryGroup2", T0."QryGroup3"
-                    If oform.DataSources.DBDataSources.Item("OCRD").GetValue("QryGroup1", 0).Trim() = "Y" Then
-                        intNumProp = intNumProp + 1
-                    End If
-
-                    If oform.DataSources.DBDataSources.Item("OCRD").GetValue("QryGroup2", 0).Trim() = "Y" Then
-                        intNumProp = intNumProp + 1
-                    End If
-
-                    If oform.DataSources.DBDataSources.Item("OCRD").GetValue("QryGroup3", 0).Trim() = "Y" Then
-                        intNumProp = intNumProp + 1
-                    End If
-
-                    If intNumProp > 1 Then
-                        sMensaje = "Sólo debe marcar una de las tres Facturaciones: Facturación INMEDIATA, Facturación QUINCENAL o Facturación MENSUAL"
-                        objGlobal.SBOApp.StatusBar.SetText(sMensaje, SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Error)
-                        Exit Function
-                    Else
-                        If intNumProp = 0 Then
-                            sMensaje = "Debe marcar una de las tres Facturaciones: Facturación INMEDIATA, Facturación QUINCENAL o Facturación MENSUAL"
-                            objGlobal.SBOApp.StatusBar.SetText(sMensaje, SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Error)
-                            Exit Function
-                        End If
-                    End If
                 End If
+
+                CType(oform.Items.Item("3").Specific, SAPbouiCOM.Folder).Select()
+                'al crear un IC marcar la facturacion inmediata, 
+
+                'y verificar que siempre una de las 3 está marcada y solo una
+                'T0."QryGroup1", T0."QryGroup2", T0."QryGroup3"
+                'intNumProp = 0
+                '    If oform.DataSources.DBDataSources.Item("OCRD").GetValue("QryGroup1", 0).Trim() = "Y" Then
+                '        intNumProp = intNumProp + 1
+                '    End If
+
+                '    If oform.DataSources.DBDataSources.Item("OCRD").GetValue("QryGroup2", 0).Trim() = "Y" Then
+                '        intNumProp = intNumProp + 1
+                '    End If
+
+                '    If oform.DataSources.DBDataSources.Item("OCRD").GetValue("QryGroup3", 0).Trim() = "Y" Then
+                '        intNumProp = intNumProp + 1
+                '    End If
+
+                '    If intNumProp > 1 Then
+                '        sMensaje = "Sólo debe marcar una de las tres Facturaciones: Facturación INMEDIATA, Facturación QUINCENAL o Facturación MENSUAL"
+                '        objGlobal.SBOApp.StatusBar.SetText(sMensaje, SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Error)
+                '        Exit Function
+                '    Else
+                '        If intNumProp = 0 Then
+                '            sMensaje = "Debe marcar una de las tres Facturaciones: Facturación INMEDIATA, Facturación QUINCENAL o Facturación MENSUAL"
+                '            objGlobal.SBOApp.StatusBar.SetText(sMensaje, SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Error)
+                '            Exit Function
+                '        End If
+                '    End If
+            End If
                 oform.Freeze(False)
                 Comprobar_Datos = True
-                'End If
-            End If
+            'End If
+
 
 
         Catch ex As Exception
