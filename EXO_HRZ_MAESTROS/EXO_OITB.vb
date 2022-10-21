@@ -10,11 +10,19 @@ Public Class EXO_OITB
 
         End If
     End Sub
+
+#Region "SAP"
+
+#End Region
     Private Sub cargaDatos()
         Dim sXML As String = ""
         Dim res As String = ""
 
         If objGlobal.refDi.comunes.esAdministrador Then
+            sXML = objGlobal.funciones.leerEmbebido(Me.GetType(), "UDO_EXO_TIPOFAM.xml")
+            objGlobal.refDi.comunes.LoadBDFromXML(sXML)
+            objGlobal.SBOApp.StatusBar.SetText("Validando: UDO UDO_EXO_TIPOFAM", SAPbouiCOM.BoMessageTime.bmt_Medium, SAPbouiCOM.BoStatusBarMessageType.smt_Success)
+            res = objGlobal.SBOApp.GetLastBatchResults
 
             sXML = objGlobal.funciones.leerEmbebido(Me.GetType(), "UDFs_OITB.xml")
             objGlobal.refDi.comunes.LoadBDFromXML(sXML)

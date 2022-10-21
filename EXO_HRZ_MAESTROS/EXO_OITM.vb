@@ -26,10 +26,7 @@ Public Class EXO_OITM
             objGlobal.SBOApp.StatusBar.SetText("Validando: UDO_EXO_OADMINTER", SAPbouiCOM.BoMessageTime.bmt_Medium, SAPbouiCOM.BoStatusBarMessageType.smt_Success)
             res = objGlobal.SBOApp.GetLastBatchResults
 
-            sXML = objGlobal.funciones.leerEmbebido(Me.GetType(), "UDO_EXO_TIPOFAM.xml")
-            objGlobal.refDi.comunes.LoadBDFromXML(sXML)
-            objGlobal.SBOApp.StatusBar.SetText("Validando: UDO_EXO_TIPOFAM", SAPbouiCOM.BoMessageTime.bmt_Medium, SAPbouiCOM.BoStatusBarMessageType.smt_Success)
-            res = objGlobal.SBOApp.GetLastBatchResults
+
         End If
     End Sub
     Public Overrides Function filtros() As SAPbouiCOM.EventFilters

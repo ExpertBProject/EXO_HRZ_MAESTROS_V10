@@ -10,8 +10,8 @@ Public Class EXOTIPOFAM
         MyBase.New(oObjGlobal, actualizar, usaLicencia, idAddOn)
 
         If actualizar Then
-            cargaDatos()
-            cargaAutorizaciones()
+            'cargaDatos()
+            'cargaAutorizaciones()
         End If
     End Sub
 
@@ -34,24 +34,24 @@ Public Class EXOTIPOFAM
 
     End Function
 
-    Private Sub cargaDatos()
-        Dim sXML As String = ""
-        Dim res As String = ""
+    'Private Sub cargaDatos()
+    '    Dim sXML As String = ""
+    '    Dim res As String = ""
 
-        If objGlobal.refDi.comunes.esAdministrador Then
-            'UDO Tarificador 401
-            sXML = objGlobal.funciones.leerEmbebido(Me.GetType(), "UDO_EXO_TIPOFAM.xml")
-            objGlobal.refDi.comunes.LoadBDFromXML(sXML)
-            objGlobal.SBOApp.StatusBar.SetText("Validando: UDO UDO_EXO_TIPOFAM", SAPbouiCOM.BoMessageTime.bmt_Medium, SAPbouiCOM.BoStatusBarMessageType.smt_Success)
-            res = objGlobal.SBOApp.GetLastBatchResults
-        End If
-    End Sub
+    '    If objGlobal.refDi.comunes.esAdministrador Then
 
-    Private Sub cargaAutorizaciones()
-        Dim autorizacionXML As String = objGlobal.funciones.leerEmbebido(Me.GetType(), "EXO_AUTIPOFAM.xml")
-        objGlobal.refDi.comunes.LoadBDFromXML(autorizacionXML)
-        Dim res As String = objGlobal.SBOApp.GetLastBatchResults
-    End Sub
+    '        sXML = objGlobal.funciones.leerEmbebido(Me.GetType(), "UDO_EXO_TIPOFAM.xml")
+    '        objGlobal.refDi.comunes.LoadBDFromXML(sXML)
+    '        objGlobal.SBOApp.StatusBar.SetText("Validando: UDO UDO_EXO_TIPOFAM", SAPbouiCOM.BoMessageTime.bmt_Medium, SAPbouiCOM.BoStatusBarMessageType.smt_Success)
+    '        res = objGlobal.SBOApp.GetLastBatchResults
+    '    End If
+    'End Sub
+
+    'Private Sub cargaAutorizaciones()
+    '    Dim autorizacionXML As String = objGlobal.funciones.leerEmbebido(Me.GetType(), "EXO_AUTIPOFAM.xml")
+    '    objGlobal.refDi.comunes.LoadBDFromXML(autorizacionXML)
+    '    Dim res As String = objGlobal.SBOApp.GetLastBatchResults
+    'End Sub
 
 #End Region
     Public Overrides Function SBOApp_MenuEvent(infoEvento As MenuEvent) As Boolean
@@ -84,7 +84,100 @@ Public Class EXOTIPOFAM
         End Try
     End Function
 
+    Public Overrides Function SBOApp_ItemEvent(infoEvento As ItemEvent) As Boolean
+        Try
+            Dim oForm As SAPbouiCOM.Form = Nothing
 
+            If infoEvento.InnerEvent = False Then
+                If infoEvento.BeforeAction = False Then
+                    Select Case infoEvento.FormTypeEx
+                        Case "UDO_FT_EXO_TIPOFAM"
+                            Select Case infoEvento.EventType
+                                Case SAPbouiCOM.BoEventTypes.et_COMBO_SELECT
+
+                                Case SAPbouiCOM.BoEventTypes.et_ITEM_PRESSED
+
+                                Case SAPbouiCOM.BoEventTypes.et_CLICK
+
+                                Case SAPbouiCOM.BoEventTypes.et_DOUBLE_CLICK
+
+                                Case SAPbouiCOM.BoEventTypes.et_VALIDATE
+
+                                Case SAPbouiCOM.BoEventTypes.et_KEY_DOWN
+
+                                Case SAPbouiCOM.BoEventTypes.et_MATRIX_LINK_PRESSED
+
+                                Case SAPbouiCOM.BoEventTypes.et_FORM_RESIZE
+
+                            End Select
+                    End Select
+                ElseIf infoEvento.BeforeAction = True Then
+                    Select Case infoEvento.FormTypeEx
+                        Case "UDO_FT_EXO_TIPOFAM"
+                            Select Case infoEvento.EventType
+                                Case SAPbouiCOM.BoEventTypes.et_COMBO_SELECT
+
+                                Case SAPbouiCOM.BoEventTypes.et_CLICK
+
+                                Case SAPbouiCOM.BoEventTypes.et_ITEM_PRESSED
+
+                                Case SAPbouiCOM.BoEventTypes.et_VALIDATE
+
+                                Case SAPbouiCOM.BoEventTypes.et_KEY_DOWN
+
+                                Case SAPbouiCOM.BoEventTypes.et_MATRIX_LINK_PRESSED
+
+                                Case SAPbouiCOM.BoEventTypes.et_DOUBLE_CLICK
+
+                            End Select
+                    End Select
+                End If
+            Else
+                If infoEvento.BeforeAction = False Then
+                    Select Case infoEvento.FormTypeEx
+                        Case "UDO_FT_EXO_TIPOFAM"
+                            Select Case infoEvento.EventType
+                                Case SAPbouiCOM.BoEventTypes.et_FORM_VISIBLE
+                                    oForm = objGlobal.SBOApp.Forms.Item(infoEvento.FormUID)
+                                    If oForm.Visible = True Then
+                                        CargaComboTipoFamilia(oForm)
+                                    End If
+
+                                Case SAPbouiCOM.BoEventTypes.et_FORM_LOAD
+                                    'If infoEvento.ActionSuccess Then
+                                    '    oForm = objGlobal.SBOApp.Forms.Item(infoEvento.FormUID)
+                                    '    If oForm.Visible = True Then
+
+                                    '        CargaComboTipoFamilia(oForm)
+
+                                    '    End If
+                                    'End If
+                                Case SAPbouiCOM.BoEventTypes.et_CHOOSE_FROM_LIST
+
+                            End Select
+                    End Select
+                Else
+                    Select Case infoEvento.FormTypeEx
+                        Case "UDO_FT_EXO_TIPOFAM"
+                            Select Case infoEvento.EventType
+                                Case SAPbouiCOM.BoEventTypes.et_CHOOSE_FROM_LIST
+
+                                Case SAPbouiCOM.BoEventTypes.et_PICKER_CLICKED
+
+                            End Select
+                    End Select
+                End If
+            End If
+
+            Return MyBase.SBOApp_ItemEvent(infoEvento)
+        Catch exCOM As System.Runtime.InteropServices.COMException
+            objGlobal.Mostrar_Error(exCOM, EXO_UIAPI.EXO_UIAPI.EXO_TipoMensaje.Excepcion)
+            Return False
+        Catch ex As Exception
+            objGlobal.Mostrar_Error(ex, EXO_UIAPI.EXO_UIAPI.EXO_TipoMensaje.Excepcion)
+            Return False
+        End Try
+    End Function
     Public Overrides Function SBOApp_FormDataEvent(ByVal infoEvento As BusinessObjectInfo) As Boolean
         Dim oForm As SAPbouiCOM.Form = Nothing
         Dim oXml As New Xml.XmlDocument
