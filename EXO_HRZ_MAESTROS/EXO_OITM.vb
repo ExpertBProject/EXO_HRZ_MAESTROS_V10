@@ -256,7 +256,7 @@ Public Class EXO_OITM
                     If pVal.ItemChanged = True Then
                         'cargarSUBFAMLIAS
                         CargaComboSubFam(oForm)
-                        'AsignarPropiedad(oForm)
+                        AsignarPropiedad(oForm)
                     End If
                 Case "cmbSubFam"
                     If pVal.ItemChanged = True Then

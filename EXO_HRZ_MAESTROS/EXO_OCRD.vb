@@ -22,6 +22,7 @@ Public Class EXO_OCRD
         Dim oForm As SAPbouiCOM.Form = Nothing
         Dim oChk As CheckBox
         Try
+
             If infoEvento.BeforeAction = True Then
 
             Else
@@ -30,23 +31,27 @@ Public Class EXO_OCRD
                     Case "1282"
                         'marcar propiedad 1
                         oForm = objGlobal.SBOApp.Forms.ActiveForm
-                        oForm.Freeze(True)
-                        CType(oForm.Items.Item("10").Specific, SAPbouiCOM.Folder).Select()
-                        Try
-                            For i As Integer = 1 To 1
-                                If CType(CType(oForm.Items.Item("136").Specific, Matrix).Columns.Item("1").Cells.Item(i).Specific, EditText).Value <> "" Then
-                                    oChk = CType(CType(oForm.Items.Item("136").Specific, SAPbouiCOM.Matrix).Columns.Item("2").Cells.Item(i).Specific, CheckBox)
-                                    oChk.Checked = True
-                                Else
-                                    Exit For
-                                End If
-                            Next
-                            CType(oForm.Items.Item("3").Specific, SAPbouiCOM.Folder).Select()
-                        Catch ex As Exception
-                            oForm.Freeze(False)
-                        Finally
-                            oForm.Freeze(False)
-                        End Try
+                        If oForm.TypeEx = "134" Then
+                            oForm.Freeze(True)
+                            CType(oForm.Items.Item("10").Specific, SAPbouiCOM.Folder).Select()
+                            Try
+                                For i As Integer = 1 To 1
+                                    If CType(CType(oForm.Items.Item("136").Specific, Matrix).Columns.Item("1").Cells.Item(i).Specific, EditText).Value <> "" Then
+                                        oChk = CType(CType(oForm.Items.Item("136").Specific, SAPbouiCOM.Matrix).Columns.Item("2").Cells.Item(i).Specific, CheckBox)
+                                        oChk.Checked = True
+                                    Else
+                                        Exit For
+                                    End If
+                                Next
+                                CType(oForm.Items.Item("3").Specific, SAPbouiCOM.Folder).Select()
+                                CType(oForm.Items.Item("7").Specific, SAPbouiCOM.EditText).Active = True
+                            Catch ex As Exception
+                                oForm.Freeze(False)
+                            Finally
+                                oForm.Freeze(False)
+                            End Try
+                        End If
+
 
                 End Select
             End If
@@ -137,6 +142,10 @@ Public Class EXO_OCRD
 
                                 Case SAPbouiCOM.BoEventTypes.et_PICKER_CLICKED
 
+                                Case SAPbouiCOM.BoEventTypes.et_ITEM_PRESSED
+                                    If EventHandler_ITEM_PRESSED_Before(infoEvento) = False Then
+                                        Return False
+                                    End If
                             End Select
                     End Select
                 End If
@@ -211,6 +220,7 @@ Public Class EXO_OCRD
                 Comprobar_CIF(oForm)
             End If
 
+
             EventHandler_VALIDATE_Before = True
 
         Catch exCOM As System.Runtime.InteropServices.COMException
@@ -221,7 +231,64 @@ Public Class EXO_OCRD
             EXO_CleanCOM.CLiberaCOM.Form(oForm)
         End Try
     End Function
+    Public Overrides Function SBOApp_FormDataEvent(ByVal infoEvento As BusinessObjectInfo) As Boolean
+        Dim oForm As SAPbouiCOM.Form = Nothing
+        Dim oXml As New Xml.XmlDocument
+        Dim sItemCode As String = ""
 
+        Try
+            oForm = objGlobal.SBOApp.Forms.Item(infoEvento.FormUID)
+            If infoEvento.BeforeAction = True Then
+                Select Case infoEvento.FormTypeEx
+                    Case "134"
+                        Select Case infoEvento.EventType
+
+                            Case SAPbouiCOM.BoEventTypes.et_FORM_DATA_LOAD
+
+                            Case SAPbouiCOM.BoEventTypes.et_FORM_DATA_UPDATE
+                                'If Comprobar_Datos(oForm) = False Then
+                                '    Return False
+                                'End If
+
+                            Case SAPbouiCOM.BoEventTypes.et_FORM_DATA_ADD
+                                'If Comprobar_Datos(oForm) = False Then
+                                '    Return False
+                                'End If
+                        End Select
+                End Select
+            Else
+                Select Case infoEvento.FormTypeEx
+                    Case "134"
+                        Select Case infoEvento.EventType
+                            Case SAPbouiCOM.BoEventTypes.et_FORM_DATA_UPDATE
+                                If infoEvento.ActionSuccess Then
+
+                                End If
+                            Case SAPbouiCOM.BoEventTypes.et_FORM_DATA_ADD
+                                If infoEvento.ActionSuccess Then
+
+
+                                End If
+                            Case SAPbouiCOM.BoEventTypes.et_FORM_DATA_LOAD
+                                If infoEvento.ActionSuccess Then
+
+                                End If
+                        End Select
+                End Select
+            End If
+
+            Return MyBase.SBOApp_FormDataEvent(infoEvento)
+
+        Catch exCOM As System.Runtime.InteropServices.COMException
+            objGlobal.Mostrar_Error(exCOM, EXO_UIAPI.EXO_UIAPI.EXO_TipoMensaje.Excepcion)
+            Return False
+        Catch ex As Exception
+            objGlobal.Mostrar_Error(ex, EXO_UIAPI.EXO_UIAPI.EXO_TipoMensaje.Excepcion)
+            Return False
+        Finally
+            EXO_CleanCOM.CLiberaCOM.liberaCOM(CType(oForm, Object))
+        End Try
+    End Function
     Private Function Comprobar_CIF(ByRef oform As SAPbouiCOM.Form) As Boolean
         Dim sCIF As String = "" : Dim sCardTypeAct As String = "" : Dim sCardCodeAct As String = "" : Dim sCardCode As String = ""
         Dim sMensaje As String = ""
@@ -285,242 +352,259 @@ Public Class EXO_OCRD
 
         Comprobar_Datos = False
         Try
+            If CType(oform.Items.Item("5").Specific, SAPbouiCOM.EditText).Value.ToString.StartsWith("CC") Then 'cardcode contado no
+                Comprobar_Datos = True
+            Else
 
-            If oform.Mode = BoFormMode.fm_ADD_MODE Or oform.Mode = BoFormMode.fm_UPDATE_MODE Then
-                objGlobal.SBOApp.StatusBar.SetText("...Comprobando datos...", SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Error)
-                oform.Freeze(True)
-                'If CType(oform.Items.Item("5").Specific, SAPbouiCOM.EditText).Value.ToString.StartsWith("CC") Then 'cardname
-                'card name obligatorio
-                If CType(oform.Items.Item("7").Specific, SAPbouiCOM.EditText).Value.ToString = "" Then
-                    sMensaje = "El nombre de cliente no puede estar vacío "
-                    objGlobal.SBOApp.StatusBar.SetText(sMensaje, SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Error)
-                    Exit Function
-                End If
+                If oform.Mode = BoFormMode.fm_ADD_MODE Or oform.Mode = BoFormMode.fm_UPDATE_MODE Then
+                    objGlobal.SBOApp.StatusBar.SetText("...Comprobando datos...", SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Error)
+                    oform.Freeze(True)
+                    'If CType(oform.Items.Item("5").Specific, SAPbouiCOM.EditText).Value.ToString.StartsWith("CC") Then 'cardname
+                    'card name obligatorio
+                    If CType(oform.Items.Item("7").Specific, SAPbouiCOM.EditText).Value.ToString = "" Then
+                        sMensaje = "El nombre de cliente no puede estar vacío "
+                        objGlobal.SBOApp.StatusBar.SetText(sMensaje, SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Error)
+                        Exit Function
+                    End If
 
-                If CType(oform.Items.Item("16").Specific, SAPbouiCOM.ComboBox).Selected.Description.ToString = "" Then     'grupo
-                    sMensaje = "El grupo de cliente debe ser HURYZA "
-                    objGlobal.SBOApp.StatusBar.SetText(sMensaje, SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Error)
-                    Exit Function
-                End If
+                    If CType(oform.Items.Item("16").Specific, SAPbouiCOM.ComboBox).Selected.Description.ToString = "" Then     'grupo
+                        sMensaje = "El grupo de cliente debe ser HURYZA "
+                        objGlobal.SBOApp.StatusBar.SetText(sMensaje, SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Error)
+                        Exit Function
+                    End If
 
-                'telefonos
-                If CType(oform.Items.Item("43").Specific, SAPbouiCOM.EditText).Value.ToString = "" And CType(oform.Items.Item("45").Specific, SAPbouiCOM.EditText).Value.ToString = "" And CType(oform.Items.Item("51").Specific, SAPbouiCOM.EditText).Value.ToString = "" Then
-                    sMensaje = "Debe introducir al menos un teléfono"
-                    objGlobal.SBOApp.StatusBar.SetText(sMensaje, SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Error)
-                    Exit Function
-                End If
+                    'telefonos
+                    If CType(oform.Items.Item("43").Specific, SAPbouiCOM.EditText).Value.ToString = "" And CType(oform.Items.Item("45").Specific, SAPbouiCOM.EditText).Value.ToString = "" And CType(oform.Items.Item("51").Specific, SAPbouiCOM.EditText).Value.ToString = "" Then
+                        sMensaje = "Debe introducir al menos un teléfono"
+                        objGlobal.SBOApp.StatusBar.SetText(sMensaje, SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Error)
+                        Exit Function
+                    End If
 
-                'email
-                If CType(oform.Items.Item("60").Specific, SAPbouiCOM.EditText).Value.ToString = "" And CType(oform.Items.Item("113").Specific, SAPbouiCOM.EditText).Value.ToString = "" Then
-                    sMensaje = "Debe introducir al menos un email "
-                    objGlobal.SBOApp.StatusBar.SetText(sMensaje, SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Error)
-                    Exit Function
-                End If
+                    'email
+                    If CType(oform.Items.Item("60").Specific, SAPbouiCOM.EditText).Value.ToString = "" And CType(oform.Items.Item("113").Specific, SAPbouiCOM.EditText).Value.ToString = "" Then
+                        sMensaje = "Debe introducir al menos un email "
+                        objGlobal.SBOApp.StatusBar.SetText(sMensaje, SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Error)
+                        Exit Function
+                    End If
 
-                'comisionista
-                If CType(oform.Items.Item("52").Specific, SAPbouiCOM.ComboBox).Selected.Value.ToString = "-1" Then
-                    sMensaje = "Debe introducir el dato de Comisionista 1 "
-                    objGlobal.SBOApp.StatusBar.SetText(sMensaje, SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Error)
-                    Exit Function
-                End If
+                    'comisionista
+                    If CType(oform.Items.Item("52").Specific, SAPbouiCOM.ComboBox).Selected.Value.ToString = "-1" Then
+                        sMensaje = "Debe introducir el dato de Comisionista 1 "
+                        objGlobal.SBOApp.StatusBar.SetText(sMensaje, SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Error)
+                        Exit Function
+                    End If
 
-                If CType(oform.Items.Item("228").Specific, SAPbouiCOM.ComboBox).Value.ToString = "-1" Or CType(oform.Items.Item("228").Specific, SAPbouiCOM.ComboBox).Value.ToString = "" Then
-                    sMensaje = "Debe introducir el dato de Comisionista 2 "
-                    objGlobal.SBOApp.StatusBar.SetText(sMensaje, SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Error)
-                    Exit Function
-                End If
+                    If CType(oform.Items.Item("228").Specific, SAPbouiCOM.ComboBox).Value.ToString = "-1" Or CType(oform.Items.Item("228").Specific, SAPbouiCOM.ComboBox).Value.ToString = "" Then
+                        sMensaje = "Debe introducir el dato de Comisionista 2 "
+                        objGlobal.SBOApp.StatusBar.SetText(sMensaje, SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Error)
+                        Exit Function
+                    End If
 
-                'recorrer direciones... como minimo una direccion por defecto de cada tipo (envio y factura)
-                'ShipToDef
-                If oform.DataSources.DBDataSources.Item("OCRD").GetValue("ShipToDef", 0).Trim() = "" Then
-                    sMensaje = "Debe introducir como mínimo una dirección de envío "
-                    objGlobal.SBOApp.StatusBar.SetText(sMensaje, SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Error)
-                    Exit Function
-                End If
+                    'recorrer direciones... como minimo una direccion por defecto de cada tipo (envio y factura)
+                    'ShipToDef
+                    If oform.DataSources.DBDataSources.Item("OCRD").GetValue("ShipToDef", 0).Trim() = "" Then
+                        sMensaje = "Debe introducir como mínimo una dirección de envío "
+                        objGlobal.SBOApp.StatusBar.SetText(sMensaje, SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Error)
+                        Exit Function
+                    End If
 
-                'BillToDef
-                If oform.DataSources.DBDataSources.Item("OCRD").GetValue("BillToDef", 0).Trim() = "" Then
-                    sMensaje = "Debe introducir como mínimo una dirección de facturación "
-                    objGlobal.SBOApp.StatusBar.SetText(sMensaje, SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Error)
-                    Exit Function
+                    'BillToDef
+                    If oform.DataSources.DBDataSources.Item("OCRD").GetValue("BillToDef", 0).Trim() = "" Then
+                        sMensaje = "Debe introducir como mínimo una dirección de facturación "
+                        objGlobal.SBOApp.StatusBar.SetText(sMensaje, SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Error)
+                        Exit Function
 
-                End If
+                    End If
 
-                Try
-                    For i As Integer = 1 To CType(oform.Items.Item("69").Specific, SAPbouiCOM.Matrix).RowCount
-                        sDato = CType(CType(oform.Items.Item("69").Specific, Matrix).Columns.Item("20").Cells.Item(i).Specific, EditText).Value
-                        If sDato = "Destinatario de la factura" Or sDato = "Definir nuevo" Or sDato = "Enviar a" Then
+                    Try
+                        For i As Integer = 1 To CType(oform.Items.Item("69").Specific, SAPbouiCOM.Matrix).RowCount
+                            sDato = CType(CType(oform.Items.Item("69").Specific, Matrix).Columns.Item("20").Cells.Item(i).Specific, EditText).Value
+                            If sDato = "Destinatario de la factura" Or sDato = "Definir nuevo" Or sDato = "Enviar a" Then
 
-                        Else
-                            CType(oform.Items.Item("69").Specific, Matrix).Columns.Item("20").Cells.Item(i).Click(BoCellClickType.ct_Regular)
+                            Else
+                                CType(oform.Items.Item("69").Specific, Matrix).Columns.Item("20").Cells.Item(i).Click(BoCellClickType.ct_Regular)
 
-                            'en el item 178 tengo las direcciones
-                            For j As Integer = 1 To CType(oform.Items.Item("178").Specific, SAPbouiCOM.Matrix).RowCount
-                                sDire = CType(CType(oform.Items.Item("178").Specific, Matrix).Columns.Item("1").Cells.Item(j).Specific, EditText).Value
-                                If sDire = "" Then
-                                    sMensaje = "Debe introducir una ID de dirección "
-                                    objGlobal.SBOApp.StatusBar.SetText(sMensaje, SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Error)
-                                    Exit Function
-                                End If
-
-                                If CType(CType(oform.Items.Item("178").Specific, Matrix).Columns.Item("2").Cells.Item(j).Specific, EditText).Value = "" Then
-                                    sMensaje = "Debe introducir una dirección "
-                                    objGlobal.SBOApp.StatusBar.SetText(sMensaje, SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Error)
-                                    Exit Function
-                                End If
-
-                                If CType(CType(oform.Items.Item("178").Specific, Matrix).Columns.Item("5").Cells.Item(j).Specific, EditText).Value = "" Then
-                                    sMensaje = "Debe introducir un código postal "
-                                    objGlobal.SBOApp.StatusBar.SetText(sMensaje, SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Error)
-                                    Exit Function
-                                End If
-
-                                If CType(CType(oform.Items.Item("178").Specific, Matrix).Columns.Item("6").Cells.Item(j).Specific, EditText).Value = "" Then
-                                    sMensaje = "Debe introducir una provincia "
-                                    objGlobal.SBOApp.StatusBar.SetText(sMensaje, SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Error)
-                                    Exit Function
-                                End If
-
-                                If CType(CType(oform.Items.Item("178").Specific, Matrix).Columns.Item("8").Cells.Item(j).Specific, ComboBox).Selected.Value.ToString = "ES" Then
-                                    If CType(CType(oform.Items.Item("178").Specific, Matrix).Columns.Item("7").Cells.Item(j).Specific, ComboBox).Selected.Value.ToString = "" Then
-                                        sMensaje = "Debe introducir el dato Estado cuando el país es España "
+                                'en el item 178 tengo las direcciones
+                                For j As Integer = 1 To CType(oform.Items.Item("178").Specific, SAPbouiCOM.Matrix).RowCount
+                                    sDire = CType(CType(oform.Items.Item("178").Specific, Matrix).Columns.Item("1").Cells.Item(j).Specific, EditText).Value
+                                    If sDire = "" Then
+                                        sMensaje = "Debe introducir una ID de dirección "
                                         objGlobal.SBOApp.StatusBar.SetText(sMensaje, SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Error)
                                         Exit Function
                                     End If
 
-                                End If
+                                    If CType(CType(oform.Items.Item("178").Specific, Matrix).Columns.Item("2").Cells.Item(j).Specific, EditText).Value = "" Then
+                                        sMensaje = "Debe introducir una dirección "
+                                        objGlobal.SBOApp.StatusBar.SetText(sMensaje, SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Error)
+                                        Exit Function
+                                    End If
 
-                                'If oform.DataSources.DBDataSources.Item("CRD1").GetValue("Address", intCont).Trim() = "" Then
-                                '    sMensaje = "Debe introducir una ID de dirección de " & sTipo
-                                '    objGlobal.SBOApp.StatusBar.SetText("(EXO) - " & sMensaje, SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Error)
-                                '    Exit Function
-                                'End If
+                                    If CType(CType(oform.Items.Item("178").Specific, Matrix).Columns.Item("5").Cells.Item(j).Specific, EditText).Value = "" Then
+                                        sMensaje = "Debe introducir un código postal "
+                                        objGlobal.SBOApp.StatusBar.SetText(sMensaje, SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Error)
+                                        Exit Function
+                                    End If
 
-                                'If oform.DataSources.DBDataSources.Item("CRD1").GetValue("Street", intCont).Trim() = "" Then
-                                '    sMensaje = "Debe introducir una dirección de " & sTipo
-                                '    objGlobal.SBOApp.StatusBar.SetText("(EXO) - " & sMensaje, SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Error)
-                                '    Exit Function
-                                'End If
+                                    If CType(CType(oform.Items.Item("178").Specific, Matrix).Columns.Item("6").Cells.Item(j).Specific, EditText).Value = "" Then
+                                        sMensaje = "Debe introducir una provincia "
+                                        objGlobal.SBOApp.StatusBar.SetText(sMensaje, SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Error)
+                                        Exit Function
+                                    End If
 
-                                'If oform.DataSources.DBDataSources.Item("CRD1").GetValue("ZipCode", intCont).Trim() = "" Then
-                                '    sMensaje = "Debe introducir un código postal de " & sTipo
-                                '    objGlobal.SBOApp.StatusBar.SetText("(EXO) - " & sMensaje, SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Error)
-                                '    Exit Function
-                                'End If
+                                    If CType(CType(oform.Items.Item("178").Specific, Matrix).Columns.Item("8").Cells.Item(j).Specific, ComboBox).Selected.Value.ToString = "ES" Then
+                                        If CType(CType(oform.Items.Item("178").Specific, Matrix).Columns.Item("7").Cells.Item(j).Specific, ComboBox).Selected.Value.ToString = "" Then
+                                            sMensaje = "Debe introducir el dato Estado cuando el país es España "
+                                            objGlobal.SBOApp.StatusBar.SetText(sMensaje, SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Error)
+                                            Exit Function
+                                        End If
 
-                                'If oform.DataSources.DBDataSources.Item("CRD1").GetValue("County", intCont).Trim() = "" Then
-                                '    sMensaje = "Debe introducir una población de " & sTipo
-                                '    objGlobal.SBOApp.StatusBar.SetText("(EXO) - " & sMensaje, SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Error)
-                                '    Exit Function
-                                'End If
+                                    End If
 
-                                'If oform.DataSources.DBDataSources.Item("CRD1").GetValue("Country", intCont).Trim() = "ES" Then
-                                '    If oform.DataSources.DBDataSources.Item("CRD1").GetValue("State", intCont).Trim() = "" Then
-                                '        sMensaje = "Debe introducir el dato Estado cuando el país es España en " & sTipo
-                                '        objGlobal.SBOApp.StatusBar.SetText("(EXO) - " & sMensaje, SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Error)
-                                '        Exit Function
-                                '    End If
-                                'End If
-                            Next
+                                    'If oform.DataSources.DBDataSources.Item("CRD1").GetValue("Address", intCont).Trim() = "" Then
+                                    '    sMensaje = "Debe introducir una ID de dirección de " & sTipo
+                                    '    objGlobal.SBOApp.StatusBar.SetText("(EXO) - " & sMensaje, SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Error)
+                                    '    Exit Function
+                                    'End If
 
-                        End If
+                                    'If oform.DataSources.DBDataSources.Item("CRD1").GetValue("Street", intCont).Trim() = "" Then
+                                    '    sMensaje = "Debe introducir una dirección de " & sTipo
+                                    '    objGlobal.SBOApp.StatusBar.SetText("(EXO) - " & sMensaje, SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Error)
+                                    '    Exit Function
+                                    'End If
 
-                    Next
-                Catch ex As Exception
+                                    'If oform.DataSources.DBDataSources.Item("CRD1").GetValue("ZipCode", intCont).Trim() = "" Then
+                                    '    sMensaje = "Debe introducir un código postal de " & sTipo
+                                    '    objGlobal.SBOApp.StatusBar.SetText("(EXO) - " & sMensaje, SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Error)
+                                    '    Exit Function
+                                    'End If
 
-                End Try
+                                    'If oform.DataSources.DBDataSources.Item("CRD1").GetValue("County", intCont).Trim() = "" Then
+                                    '    sMensaje = "Debe introducir una población de " & sTipo
+                                    '    objGlobal.SBOApp.StatusBar.SetText("(EXO) - " & sMensaje, SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Error)
+                                    '    Exit Function
+                                    'End If
 
-                'condiciones de pago
+                                    'If oform.DataSources.DBDataSources.Item("CRD1").GetValue("Country", intCont).Trim() = "ES" Then
+                                    '    If oform.DataSources.DBDataSources.Item("CRD1").GetValue("State", intCont).Trim() = "" Then
+                                    '        sMensaje = "Debe introducir el dato Estado cuando el país es España en " & sTipo
+                                    '        objGlobal.SBOApp.StatusBar.SetText("(EXO) - " & sMensaje, SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Error)
+                                    '        Exit Function
+                                    '    End If
+                                    'End If
+                                Next
 
-                If CType(oform.Items.Item("75").Specific, SAPbouiCOM.ComboBox).Selected.Value.ToString = "-1" Then
-                    sMensaje = "Debe introducir una condición de pago "
-                    objGlobal.SBOApp.StatusBar.SetText(sMensaje, SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Error)
-                    Exit Function
-                End If
+                            End If
 
-                oform.Freeze(True)
-                'intCuenta = CType(oform.Items.Item("217").Specific, SAPbouiCOM.Matrix).RowCount
-                'recorrer todas las vias de pago y marcarlas
-                CType(oform.Items.Item("214").Specific, SAPbouiCOM.Folder).Select()
-                Try
-                    For i As Integer = 1 To CType(oform.Items.Item("217").Specific, SAPbouiCOM.Matrix).RowCount - 1
-                        If CType(CType(oform.Items.Item("217").Specific, Matrix).Columns.Item("2").Cells.Item(i).Specific, EditText).Value <> "" Then
-                            oChk = CType(CType(oform.Items.Item("217").Specific, SAPbouiCOM.Matrix).Columns.Item("5").Cells.Item(i).Specific, CheckBox)
-                            oChk.Checked = True
-                        Else
-                            Exit For
-                        End If
-                    Next
-                Catch ex As Exception
+                        Next
+                    Catch ex As Exception
+
+                    End Try
+
+                    'condiciones de pago
+
+                    If CType(oform.Items.Item("75").Specific, SAPbouiCOM.ComboBox).Selected.Value.ToString = "-1" Then
+                        sMensaje = "Debe introducir una condición de pago "
+                        objGlobal.SBOApp.StatusBar.SetText(sMensaje, SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Error)
+                        Exit Function
+                    End If
+
+                    oform.Freeze(True)
+                    'intCuenta = CType(oform.Items.Item("217").Specific, SAPbouiCOM.Matrix).RowCount
+                    'recorrer todas las vias de pago y marcarlas
+                    CType(oform.Items.Item("214").Specific, SAPbouiCOM.Folder).Select()
+                    Try
+                        For i As Integer = 1 To CType(oform.Items.Item("217").Specific, SAPbouiCOM.Matrix).RowCount - 1
+                            If CType(CType(oform.Items.Item("217").Specific, Matrix).Columns.Item("2").Cells.Item(i).Specific, EditText).Value <> "" Then
+                                oChk = CType(CType(oform.Items.Item("217").Specific, SAPbouiCOM.Matrix).Columns.Item("5").Cells.Item(i).Specific, CheckBox)
+                                oChk.Checked = True
+                            Else
+                                Exit For
+                            End If
+                        Next
+
+                    Catch ex As Exception
+                        oform.Freeze(False)
+                    Finally
+                        oform.Freeze(False)
+                    End Try
+
+
+                    CType(oform.Items.Item("3").Specific, SAPbouiCOM.Folder).Select()
                     oform.Freeze(False)
-                End Try
+                    'via pago por defecto
+                    sViaPago = oform.DataSources.DBDataSources.Item("OCRD").GetValue("PymCode", 0).Trim()
+                    If sViaPago <> "" Then
+                        'si es giro o recibo, obligar a rellenar la cuenta bancaria
+                        sViaPago = objGlobal.refDi.SQL.sqlStringB1("SELECT T0.""Descript"" FROM OPYM T0 WHERE T0.""PayMethCod""='" & sViaPago & "'  ")
+                        If sViaPago = "Giro" Or sViaPago = "Recibo" Then
+                            If oform.DataSources.DBDataSources.Item("OCRD").GetValue("BankCode", 0).Trim() = "" Or oform.DataSources.DBDataSources.Item("OCRD").GetValue("BankCode", 0).Trim() = "-1" Then
+                                sMensaje = "Cuando la forma de pago es Giro o Recibo es obligatorio introducir una cuenta bancaria desde la pestaña de condiciones de pago"
+                                objGlobal.SBOApp.StatusBar.SetText(sMensaje, SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Error)
+                                Exit Function
+                            End If
+                        End If
 
+                        'si es transferencia o transferencia por adelantado obligar a indicar un banco propio
+                        If sViaPago = "Transferencia" Or sViaPago = "Transferencia por adelantado" Then
+                            'HouseBank
+                            If oform.DataSources.DBDataSources.Item("OCRD").GetValue("HouseBank", 0).Trim() = "" Or oform.DataSources.DBDataSources.Item("OCRD").GetValue("HouseBank", 0).Trim() = "-1" Then
+                                sMensaje = "Cuando la forma de pago es Transferencia o Transferencia por adelantado es obligatorio introducir un banco propio"
+                                objGlobal.SBOApp.StatusBar.SetText(sMensaje, SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Error)
+                                Exit Function
+                            End If
+                        End If
+                    End If
 
-                CType(oform.Items.Item("3").Specific, SAPbouiCOM.Folder).Select()
-                oform.Freeze(False)
-                'via pago por defecto
-                sViaPago = oform.DataSources.DBDataSources.Item("OCRD").GetValue("PymCode", 0).Trim()
-                If sViaPago <> "" Then
-                    'si es giro o recibo, obligar a rellenar la cuenta bancaria
-                    sViaPago = objGlobal.refDi.SQL.sqlStringB1("SELECT T0.""Descript"" FROM OPYM T0 WHERE T0.""PayMethCod""='" & sViaPago & "'  ")
-                    If sViaPago = "Giro" Or sViaPago = "Recibo" Then
-                        If oform.DataSources.DBDataSources.Item("OCRD").GetValue("BankCode", 0).Trim() = "" Or oform.DataSources.DBDataSources.Item("OCRD").GetValue("BankCode", 0).Trim() = "-1" Then
-                            sMensaje = "Cuando la forma de pago es Giro o Recibo es obligatorio introducir una cuenta bancaria desde la pestaña de condiciones de pago"
+                    CType(oform.Items.Item("3").Specific, SAPbouiCOM.Folder).Select()
+                    'al crear un IC marcar la facturacion inmediata, 
+
+                    'y verificar que siempre una de las 3 está marcada y solo una
+                    'T0."QryGroup1", T0."QryGroup2", T0."QryGroup3"
+                    intNumProp = 0
+                    'recorrer el matrix
+                    For i As Integer = 1 To 3
+                        If CType(CType(oform.Items.Item("136").Specific, Matrix).Columns.Item("2").Cells.Item(i).Specific, CheckBox).Checked = True Then
+                            intNumProp = intNumProp + 1
+
+                        End If
+                    Next
+                    'If oform.DataSources.DBDataSources.Item("OCRD").GetValue("QryGroup1", 0).Trim() = "Y" Then
+                    '    intNumProp = intNumProp + 1
+                    'End If
+
+                    'If oform.DataSources.DBDataSources.Item("OCRD").GetValue("QryGroup2", 0).Trim() = "Y" Then
+                    '    intNumProp = intNumProp + 1
+                    'End If
+
+                    'If oform.DataSources.DBDataSources.Item("OCRD").GetValue("QryGroup3", 0).Trim() = "Y" Then
+                    '    intNumProp = intNumProp + 1
+                    'End If
+
+                    If intNumProp > 1 Then
+                        sMensaje = "Sólo debe marcar una de las tres Facturaciones: Facturación INMEDIATA, Facturación QUINCENAL o Facturación MENSUAL"
+                        objGlobal.SBOApp.StatusBar.SetText(sMensaje, SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Error)
+                        Exit Function
+                    Else
+                        If intNumProp = 0 Then
+                            sMensaje = "Debe marcar una de las tres Facturaciones: Facturación INMEDIATA, Facturación QUINCENAL o Facturación MENSUAL"
                             objGlobal.SBOApp.StatusBar.SetText(sMensaje, SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Error)
                             Exit Function
                         End If
                     End If
-
-                    'si es transferencia o transferencia por adelantado obligar a indicar un banco propio
-                    If sViaPago = "Transferencia" Or sViaPago = "Transferencia por adelantado" Then
-                        'HouseBank
-                        If oform.DataSources.DBDataSources.Item("OCRD").GetValue("HouseBank", 0).Trim() = "" Or oform.DataSources.DBDataSources.Item("OCRD").GetValue("HouseBank", 0).Trim() = "-1" Then
-                            sMensaje = "Cuando la forma de pago es Transferencia o Transferencia por adelantado es obligatorio introducir un banco propio"
-                            objGlobal.SBOApp.StatusBar.SetText(sMensaje, SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Error)
-                            Exit Function
-                        End If
-                    End If
+                    oform.Freeze(False)
+                    Comprobar_Datos = True
                 End If
 
-                CType(oform.Items.Item("3").Specific, SAPbouiCOM.Folder).Select()
-                'al crear un IC marcar la facturacion inmediata, 
+                'oform.Freeze(False)
+                'Comprobar_Datos = True
 
-                'y verificar que siempre una de las 3 está marcada y solo una
-                'T0."QryGroup1", T0."QryGroup2", T0."QryGroup3"
-                'intNumProp = 0
-                '    If oform.DataSources.DBDataSources.Item("OCRD").GetValue("QryGroup1", 0).Trim() = "Y" Then
-                '        intNumProp = intNumProp + 1
-                '    End If
-
-                '    If oform.DataSources.DBDataSources.Item("OCRD").GetValue("QryGroup2", 0).Trim() = "Y" Then
-                '        intNumProp = intNumProp + 1
-                '    End If
-
-                '    If oform.DataSources.DBDataSources.Item("OCRD").GetValue("QryGroup3", 0).Trim() = "Y" Then
-                '        intNumProp = intNumProp + 1
-                '    End If
-
-                '    If intNumProp > 1 Then
-                '        sMensaje = "Sólo debe marcar una de las tres Facturaciones: Facturación INMEDIATA, Facturación QUINCENAL o Facturación MENSUAL"
-                '        objGlobal.SBOApp.StatusBar.SetText(sMensaje, SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Error)
-                '        Exit Function
-                '    Else
-                '        If intNumProp = 0 Then
-                '            sMensaje = "Debe marcar una de las tres Facturaciones: Facturación INMEDIATA, Facturación QUINCENAL o Facturación MENSUAL"
-                '            objGlobal.SBOApp.StatusBar.SetText(sMensaje, SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Error)
-                '            Exit Function
-                '        End If
-                '    End If
             End If
-                oform.Freeze(False)
-                Comprobar_Datos = True
-            'End If
-
 
 
         Catch ex As Exception
             oform.Freeze(False)
             Throw ex
+
         Finally
             oform.Freeze(False)
         End Try

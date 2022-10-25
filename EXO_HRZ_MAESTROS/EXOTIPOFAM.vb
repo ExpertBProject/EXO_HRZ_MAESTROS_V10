@@ -3,7 +3,7 @@ Imports SAPbouiCOM
 
 Public Class EXOTIPOFAM
     Inherits EXO_UIAPI.EXO_DLLBase
-
+    Dim bolCargarCombo As Boolean = False
     Private oCompanyService As CompanyService
 
     Public Sub New(ByRef oObjGlobal As EXO_UIAPI.EXO_UIAPI, ByRef actualizar As Boolean, usaLicencia As Boolean, idAddOn As Integer)
@@ -140,7 +140,9 @@ Public Class EXOTIPOFAM
                                 Case SAPbouiCOM.BoEventTypes.et_FORM_VISIBLE
                                     oForm = objGlobal.SBOApp.Forms.Item(infoEvento.FormUID)
                                     If oForm.Visible = True Then
+                                        bolCargarCombo = False
                                         CargaComboTipoFamilia(oForm)
+                                        bolCargarCombo = True
                                     End If
 
                                 Case SAPbouiCOM.BoEventTypes.et_FORM_LOAD
@@ -274,19 +276,69 @@ Public Class EXOTIPOFAM
         Dim sSQL As String = ""
         Dim oRs As SAPbobsCOM.Recordset = CType(objGlobal.compañia.GetBusinessObject(SAPbobsCOM.BoObjectTypes.BoRecordset), SAPbobsCOM.Recordset)
         Dim oCombo As SAPbouiCOM.ComboBox
-        Try
-            oForm.Freeze(True)
-            sSQL = "SELECT T0.""ItmsTypCod"", T0.""ItmsGrpNam"" FROM OITG T0 ORDER BY T0.""ItmsTypCod"""
-            oRs.DoQuery(sSQL)
-            If oRs.RecordCount > 0 Then
-                objGlobal.funcionesUI.cargaCombo(CType(oForm.Items.Item("cmbProp").Specific, SAPbouiCOM.ComboBox).ValidValues, sSQL)
-                oCombo = CType(oForm.Items.Item("cmbProp").Specific, ComboBox)
-                oCombo.ExpandType = BoExpandType.et_DescriptionOnly
+        Dim oItem As SAPbouiCOM.Item
+        Dim oEdit As SAPbouiCOM.ComboBox
 
-            Else
-                objGlobal.SBOApp.StatusBar.SetText("(EXO) - Por favor, antes de continuar, revise la parametrización.", SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Error)
+        Try
+            If oForm.ActiveItem <> "" And bolCargarCombo = False Then
+
+                bolCargarCombo = True
+                oForm.Freeze(True)
+                'crear el combo por desarrollo
+
+                'propiedad
+                Try
+
+
+                    oItem = oForm.Items.Add("13_U_S", BoFormItemTypes.it_STATIC)
+                    oItem.Top = oForm.Items.Item("0_U_S").Top + oForm.Items.Item("0_U_S").Height + 1
+                    oItem.Left = oForm.Items.Item("0_U_S").Left
+                    oItem.Height = oForm.Items.Item("0_U_S").Height
+                    oItem.Width = oForm.Items.Item("0_U_S").Width
+                    CType(oItem.Specific, SAPbouiCOM.StaticText).Caption = "Propiedad"
+                Catch ex As Exception
+
+                End Try
+
+                oItem = oForm.Items.Add("cmbProp", BoFormItemTypes.it_COMBO_BOX)
+                oItem.Top = oForm.Items.Item("13_U_S").Top
+                oItem.Left = oForm.Items.Item("0_U_E").Left
+                oItem.Height = oForm.Items.Item("0_U_E").Height
+                oItem.Width = oForm.Items.Item("0_U_E").Width * 2
+
+                oItem.FromPane = 0
+                oItem.ToPane = 0
+                oItem.Enabled = True
+                oItem.DisplayDesc = True
+                CType(oItem.Specific, SAPbouiCOM.ComboBox).DataBind.SetBound(True, "@EXO_TIPOFAM", "U_EXO_PROPIEDAD")
+
+
+                ' oItem = oForm.Items.Item(1)
+
+                oEdit = CType(oItem.Specific, ComboBox)
+                oEdit.TabOrder = 2
+
+                oForm.Items.Item("13_U_S").LinkTo = "cmbProp"
+
+
+                sSQL = "SELECT T0.""ItmsTypCod"", T0.""ItmsGrpNam"" FROM OITG T0 ORDER BY T0.""ItmsTypCod"""
+                oRs.DoQuery(sSQL)
+                If oRs.RecordCount > 0 Then
+                    objGlobal.funcionesUI.cargaCombo(CType(oForm.Items.Item("cmbProp").Specific, SAPbouiCOM.ComboBox).ValidValues, sSQL)
+                    oCombo = CType(oForm.Items.Item("cmbProp").Specific, ComboBox)
+                    oCombo.ExpandType = BoExpandType.et_DescriptionOnly
+
+                Else
+                    objGlobal.SBOApp.StatusBar.SetText("(EXO) - Por favor, antes de continuar, revise la parametrización.", SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Error)
+                End If
+
+                oItem.SetAutoManagedAttribute(SAPbouiCOM.BoAutoManagedAttr.ama_Editable, SAPbouiCOM.BoAutoFormMode.afm_Find, SAPbouiCOM.BoModeVisualBehavior.mvb_False)
+                oItem.SetAutoManagedAttribute(SAPbouiCOM.BoAutoManagedAttr.ama_Editable, SAPbouiCOM.BoAutoFormMode.afm_Add, SAPbouiCOM.BoModeVisualBehavior.mvb_True)
+                oItem.SetAutoManagedAttribute(SAPbouiCOM.BoAutoManagedAttr.ama_Editable, SAPbouiCOM.BoAutoFormMode.afm_Ok, SAPbouiCOM.BoModeVisualBehavior.mvb_True)
+                oItem.SetAutoManagedAttribute(SAPbouiCOM.BoAutoManagedAttr.ama_Editable, SAPbouiCOM.BoAutoFormMode.afm_View, SAPbouiCOM.BoModeVisualBehavior.mvb_True)
+                CargaComboTipoFamilia = True
+
             End If
-            CargaComboTipoFamilia = True
 
         Catch exCOM As System.Runtime.InteropServices.COMException
             Throw exCOM
