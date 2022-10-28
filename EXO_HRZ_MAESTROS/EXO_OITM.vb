@@ -227,6 +227,7 @@ Public Class EXO_OITM
                 oItem.ToPane = 0
                 CType(oItem.Specific, SAPbouiCOM.StaticText).Caption = "Subfamilia"
 
+
             End If
 
             EventHandler_Form_Load = True

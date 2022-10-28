@@ -349,7 +349,7 @@ Public Class EXO_OCRD
         Dim intNumProp As Integer = 0
         Dim sDato As String = ""
         Dim sDire As String = ""
-
+        Dim intFolder As Integer = 0
         Comprobar_Datos = False
         Try
             If CType(oform.Items.Item("5").Specific, SAPbouiCOM.EditText).Value.ToString.StartsWith("CC") Then 'cardcode contado no
@@ -508,10 +508,13 @@ Public Class EXO_OCRD
                         Exit Function
                     End If
 
-                    oform.Freeze(True)
+
                     'intCuenta = CType(oform.Items.Item("217").Specific, SAPbouiCOM.Matrix).RowCount
                     'recorrer todas las vias de pago y marcarlas
+                    intFolder = oform.PaneLevel
+
                     CType(oform.Items.Item("214").Specific, SAPbouiCOM.Folder).Select()
+                    oform.Freeze(True)
                     Try
                         For i As Integer = 1 To CType(oform.Items.Item("217").Specific, SAPbouiCOM.Matrix).RowCount - 1
                             If CType(CType(oform.Items.Item("217").Specific, Matrix).Columns.Item("2").Cells.Item(i).Specific, EditText).Value <> "" Then
@@ -525,12 +528,13 @@ Public Class EXO_OCRD
                     Catch ex As Exception
                         oform.Freeze(False)
                     Finally
-                        oform.Freeze(False)
+                        'oform.Freeze(False)
                     End Try
 
 
-                    CType(oform.Items.Item("3").Specific, SAPbouiCOM.Folder).Select()
                     oform.Freeze(False)
+                    oform.PaneLevel = intFolder
+
                     'via pago por defecto
                     sViaPago = oform.DataSources.DBDataSources.Item("OCRD").GetValue("PymCode", 0).Trim()
                     If sViaPago <> "" Then
@@ -553,9 +557,13 @@ Public Class EXO_OCRD
                                 Exit Function
                             End If
                         End If
+                    Else
+                        sMensaje = "Debe fijar una via de pago por defecto"
+                        objGlobal.SBOApp.StatusBar.SetText(sMensaje, SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Error)
+                        Exit Function
                     End If
 
-                    CType(oform.Items.Item("3").Specific, SAPbouiCOM.Folder).Select()
+
                     'al crear un IC marcar la facturacion inmediata, 
 
                     'y verificar que siempre una de las 3 está marcada y solo una
@@ -568,17 +576,7 @@ Public Class EXO_OCRD
 
                         End If
                     Next
-                    'If oform.DataSources.DBDataSources.Item("OCRD").GetValue("QryGroup1", 0).Trim() = "Y" Then
-                    '    intNumProp = intNumProp + 1
-                    'End If
 
-                    'If oform.DataSources.DBDataSources.Item("OCRD").GetValue("QryGroup2", 0).Trim() = "Y" Then
-                    '    intNumProp = intNumProp + 1
-                    'End If
-
-                    'If oform.DataSources.DBDataSources.Item("OCRD").GetValue("QryGroup3", 0).Trim() = "Y" Then
-                    '    intNumProp = intNumProp + 1
-                    'End If
 
                     If intNumProp > 1 Then
                         sMensaje = "Sólo debe marcar una de las tres Facturaciones: Facturación INMEDIATA, Facturación QUINCENAL o Facturación MENSUAL"

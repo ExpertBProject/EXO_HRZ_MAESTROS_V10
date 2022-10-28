@@ -72,8 +72,12 @@ Public Class EXO_OITB
                                 Case SAPbouiCOM.BoEventTypes.et_COMBO_SELECT
 
                                 Case SAPbouiCOM.BoEventTypes.et_CLICK
-
+                                    If EventHandler_CLICK_BEFORE(infoEvento) = False Then
+                                        GC.Collect()
+                                        Return False
+                                    End If
                                 Case SAPbouiCOM.BoEventTypes.et_ITEM_PRESSED
+                                    Dim S As String = ""
 
                                 Case SAPbouiCOM.BoEventTypes.et_VALIDATE
 
@@ -129,7 +133,6 @@ Public Class EXO_OITB
     Private Function EventHandler_Form_Load(ByRef pVal As ItemEvent) As Boolean
         Dim oForm As SAPbouiCOM.Form = Nothing
         Dim oItem As SAPbouiCOM.Item
-
         Dim Path As String = ""
         Dim XmlDoc As New System.Xml.XmlDocument
 
@@ -160,9 +163,48 @@ Public Class EXO_OITB
                 oItem.Height = oForm.Items.Item("10002023").Height
                 oItem.Width = oForm.Items.Item("10002023").Width
                 oItem.LinkTo = "txtDesL"
-                oItem.FromPane = 0
-                oItem.ToPane = 0
+                oItem.FromPane = 1
+                oItem.ToPane = 1
                 CType(oItem.Specific, SAPbouiCOM.StaticText).Caption = "Descripción larga"
+
+                'campo tipo familia
+                oItem = oForm.Items.Add("cmbTipFam", BoFormItemTypes.it_COMBO_BOX)
+                oItem.Top = oForm.Items.Item("txtDesL").Top + 15
+                oItem.Left = oForm.Items.Item("txtDesL").Left
+                oItem.Height = oForm.Items.Item("txtDesL").Height
+                oItem.Width = oForm.Items.Item("txtDesL").Width
+                'oItem.LinkTo = "107"
+                oItem.FromPane = 1
+                oItem.ToPane = 1
+
+
+                CType(oItem.Specific, SAPbouiCOM.ComboBox).DataBind.SetBound(True, "OITB", "U_EXO_TIPFAM")
+                CType(oItem.Specific, SAPbouiCOM.ComboBox).ExpandType = BoExpandType.et_DescriptionOnly
+                CType(oItem.Specific, SAPbouiCOM.ComboBox).Item.DisplayDesc = True
+
+                oItem = oForm.Items.Add("lblTipFam", BoFormItemTypes.it_STATIC)
+                oItem.Top = oForm.Items.Item("cmbTipFam").Top
+                oItem.Left = oForm.Items.Item("lblDesL").Left
+                oItem.Height = oForm.Items.Item("lblDesL").Height
+                oItem.Width = oForm.Items.Item("lblDesL").Width
+                oItem.LinkTo = "cmbTipFam"
+                oItem.FromPane = 1
+                oItem.ToPane = 1
+                CType(oItem.Specific, SAPbouiCOM.StaticText).Caption = "Tipo Familia"
+
+                oItem = oForm.Items.Add("lkTipFam", BoFormItemTypes.it_LINKED_BUTTON)
+                oItem.Top = oForm.Items.Item("cmbTipFam").Top
+                oItem.Left = oForm.Items.Item("136").Left
+                oItem.FromPane = 1
+                oItem.ToPane = 1
+
+                'CType(oItem.Specific, SAPbouiCOM.LinkedButton).LinkedObject = BoLinkedObject.lf_ServiceCall
+                CType(oItem.Specific, SAPbouiCOM.LinkedButton).LinkedObjectType = "EXO_TIPOFAM"
+                CType(oItem.Specific, SAPbouiCOM.LinkedButton).Item.LinkTo = "cmbTipFam"
+
+                'cargar datos combo
+                CargaComboTipoFamilia(oForm)
+
 
             End If
 
@@ -175,6 +217,71 @@ Public Class EXO_OITB
         Finally
             oForm.Freeze(False)
             EXO_CleanCOM.CLiberaCOM.liberaCOM(CType(oForm, Object))
+
+        End Try
+    End Function
+    Sub CargaComboTipoFamilia(ByRef oForm As Form)
+        Dim sSQL As String = ""
+        Dim oCombo As SAPbouiCOM.ComboBox
+        Dim oRs As SAPbobsCOM.Recordset = CType(objGlobal.compañia.GetBusinessObject(SAPbobsCOM.BoObjectTypes.BoRecordset), SAPbobsCOM.Recordset)
+
+        Try
+            oForm.Freeze(True)
+            sSQL = "SELECT T0.""Code"", T0.""Name"" FROM ""@EXO_TIPOFAM""  T0"
+            oRs.DoQuery(sSQL)
+            If oRs.RecordCount > 0 Then
+                objGlobal.funcionesUI.cargaCombo(CType(oForm.Items.Item("cmbTipFam").Specific, SAPbouiCOM.ComboBox).ValidValues, sSQL)
+                oCombo = CType(oForm.Items.Item("cmbTipFam").Specific, ComboBox)
+                oCombo.ExpandType = BoExpandType.et_DescriptionOnly
+            Else
+                objGlobal.SBOApp.StatusBar.SetText("(EXO) - Por favor, antes de continuar, revise la parametrización.", SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Error)
+            End If
+        Catch exCOM As System.Runtime.InteropServices.COMException
+            objGlobal.Mostrar_Error(exCOM, EXO_UIAPI.EXO_UIAPI.EXO_TipoMensaje.Excepcion)
+        Catch ex As Exception
+            objGlobal.Mostrar_Error(ex, EXO_UIAPI.EXO_UIAPI.EXO_TipoMensaje.Excepcion)
+        Finally
+            oForm.Freeze(False)
+            ' EXO_CleanCOM.CLiberaCOM.liberaCOM(CType(oForm, Object))
+            EXO_CleanCOM.CLiberaCOM.liberaCOM(CType(oRs, Object))
+            EXO_CleanCOM.CLiberaCOM.FormCombo(oCombo)
+
+        End Try
+    End Sub
+    Private Function EventHandler_CLICK_BEFORE(ByVal pVal As ItemEvent) As Boolean
+        Dim oForm As SAPbouiCOM.Form = Nothing
+        Dim STipo As String = ""
+        Dim sUser As String = ""
+        Dim oRs As SAPbobsCOM.Recordset = Nothing
+        Dim oFormA As SAPbouiCOM.Form = Nothing
+
+        EventHandler_CLICK_BEFORE = False
+
+        Try
+            oForm = objGlobal.SBOApp.Forms.Item(pVal.FormUID)
+
+            If pVal.ItemUID = "cmbTipFam" Then
+                If pVal.ActionSuccess = False Then
+                    Try
+                        'CARGARCOMBO
+                        CargaComboTipoFamilia(oForm)
+
+                    Catch ex As Exception
+
+                    End Try
+
+                End If
+
+            End If
+
+            EventHandler_CLICK_BEFORE = True
+
+        Catch ex As Exception
+            objGlobal.Mostrar_Error(ex, EXO_UIAPI.EXO_UIAPI.EXO_TipoMensaje.Excepcion)
+        Finally
+            '_sCodeALMDIVEMP = ""
+            EXO_CleanCOM.CLiberaCOM.Form(oForm)
+            EXO_CleanCOM.CLiberaCOM.liberaCOM(CType(oRs, Object))
         End Try
     End Function
 End Class
