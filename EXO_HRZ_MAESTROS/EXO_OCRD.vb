@@ -367,7 +367,7 @@ Public Class EXO_OCRD
                         Exit Function
                     End If
 
-                    If CType(oform.Items.Item("16").Specific, SAPbouiCOM.ComboBox).Selected.Description.ToString = "" Then     'grupo
+                    If CType(oform.Items.Item("16").Specific, SAPbouiCOM.ComboBox).Selected.Description.ToString = "" Or CType(oform.Items.Item("16").Specific, SAPbouiCOM.ComboBox).Selected.Description.ToString = "Clientes" Then     'grupo
                         sMensaje = "El grupo de cliente debe ser HURYZA "
                         objGlobal.SBOApp.StatusBar.SetText(sMensaje, SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Error)
                         Exit Function

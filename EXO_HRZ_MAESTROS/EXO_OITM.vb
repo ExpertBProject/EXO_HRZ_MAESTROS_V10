@@ -386,6 +386,8 @@ Public Class EXO_OITM
             If oRs.RecordCount >= 0 Then
 
                 If oRs.Fields.Item("U_EXO_FABDES").Value.ToString <> "" Then
+                    'cambiar pestaña
+                    CType(oForm.Items.Item("163").Specific, SAPbouiCOM.Folder).Select()
                     CType(oForm.Items.Item("114").Specific, SAPbouiCOM.ComboBox).Select(oRs.Fields.Item("U_EXO_FABDES").Value.ToString, BoSearchKey.psk_ByValue)
                 End If
 
