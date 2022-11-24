@@ -368,7 +368,14 @@ Public Class EXO_OCRD
                     End If
 
                     If CType(oform.Items.Item("16").Specific, SAPbouiCOM.ComboBox).Selected.Description.ToString = "" Or CType(oform.Items.Item("16").Specific, SAPbouiCOM.ComboBox).Selected.Description.ToString = "Clientes" Then     'grupo
-                        sMensaje = "El grupo de cliente debe ser HURYZA "
+                        sMensaje = "El grupo de cliente no puede estar vacío y no puede asignarse como grupo Clientes "
+                        objGlobal.SBOApp.StatusBar.SetText(sMensaje, SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Error)
+                        Exit Function
+                    End If
+
+                    'CIF
+                    If CType(oform.Items.Item("41").Specific, SAPbouiCOM.EditText).Value.ToString = "" Then
+                        sMensaje = "El CIF no puede estar vacío "
                         objGlobal.SBOApp.StatusBar.SetText(sMensaje, SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Error)
                         Exit Function
                     End If
