@@ -410,14 +410,14 @@ Public Class EXO_OCRD
                     'recorrer direciones... como minimo una direccion por defecto de cada tipo (envio y factura)
                     'ShipToDef
                     If oform.DataSources.DBDataSources.Item("OCRD").GetValue("ShipToDef", 0).Trim() = "" Then
-                        sMensaje = "Debe introducir como mínimo una dirección de envío "
+                        sMensaje = "Debe fijar como estándar como mínimo una dirección de envío "
                         objGlobal.SBOApp.StatusBar.SetText(sMensaje, SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Error)
                         Exit Function
                     End If
 
                     'BillToDef
                     If oform.DataSources.DBDataSources.Item("OCRD").GetValue("BillToDef", 0).Trim() = "" Then
-                        sMensaje = "Debe introducir como mínimo una dirección de facturación "
+                        sMensaje = "Debe fijar como estándar como mínimo una dirección de facturación "
                         objGlobal.SBOApp.StatusBar.SetText(sMensaje, SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Error)
                         Exit Function
 
