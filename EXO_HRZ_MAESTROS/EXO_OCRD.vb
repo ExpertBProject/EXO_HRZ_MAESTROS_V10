@@ -186,17 +186,20 @@ Public Class EXO_OCRD
         Try
 
             If pVal.ItemUID = "1" And (oForm.Mode = BoFormMode.fm_ADD_MODE Or oForm.Mode = BoFormMode.fm_UPDATE_MODE) Then
-                If CType(oForm.Items.Item("5").Specific, SAPbouiCOM.EditText).Value.ToString.StartsWith("CC") Then 'cardcode contado no
-                    'no compruebo
-                Else
-                    If CType(oForm.Items.Item("40").Specific, SAPbouiCOM.ComboBox).Selected.Value.ToString = "C" Then
-                        If Comprobar_Datos(oForm) = False Then
-                            Return False
-                        End If
-                    End If
-
-
+                If Comprobar_Datos(oForm) = False Then
+                    Return False
                 End If
+                'If CType(oForm.Items.Item("5").Specific, SAPbouiCOM.EditText).Value.ToString.StartsWith("CC") Then 'cardcode contado no
+                '    'no compruebo
+                'Else
+                '    If CType(oForm.Items.Item("40").Specific, SAPbouiCOM.ComboBox).Selected.Value.ToString = "C" Then
+                '        If Comprobar_Datos(oForm) = False Then
+                '            Return False
+                '        End If
+                '    End If
+
+
+                'End If
 
 
             End If
@@ -353,6 +356,14 @@ Public Class EXO_OCRD
         Comprobar_Datos = False
         Try
             If CType(oform.Items.Item("5").Specific, SAPbouiCOM.EditText).Value.ToString.StartsWith("CC") Then 'cardcode contado no
+                If oform.Mode = BoFormMode.fm_ADD_MODE Or oform.Mode = BoFormMode.fm_UPDATE_MODE Then
+                    'CIF
+                    If CType(oform.Items.Item("41").Specific, SAPbouiCOM.EditText).Value.ToString = "" Then
+                        sMensaje = "El CIF no puede estar vacío "
+                        objGlobal.SBOApp.StatusBar.SetText(sMensaje, SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Error)
+                        Exit Function
+                    End If
+                End If
                 Comprobar_Datos = True
             Else
 
