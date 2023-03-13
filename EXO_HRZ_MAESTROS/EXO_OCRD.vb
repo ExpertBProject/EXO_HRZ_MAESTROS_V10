@@ -186,9 +186,13 @@ Public Class EXO_OCRD
         Try
 
             If pVal.ItemUID = "1" And (oForm.Mode = BoFormMode.fm_ADD_MODE Or oForm.Mode = BoFormMode.fm_UPDATE_MODE) Then
-                If Comprobar_Datos(oForm) = False Then
-                    Return False
+                'solo cuando sea clientes
+                If CType(oForm.Items.Item("40").Specific, SAPbouiCOM.ComboBox).Selected.Value.ToString = "C" Then
+                    If Comprobar_Datos(oForm) = False Then
+                        Return False
+                    End If
                 End If
+
                 'If CType(oForm.Items.Item("5").Specific, SAPbouiCOM.EditText).Value.ToString.StartsWith("CC") Then 'cardcode contado no
                 '    'no compruebo
                 'Else
