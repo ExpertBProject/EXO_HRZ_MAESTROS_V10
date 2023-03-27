@@ -357,6 +357,9 @@ Public Class EXO_OCRD
         Dim sDato As String = ""
         Dim sDire As String = ""
         Dim intFolder As Integer = 0
+        Dim strCIF As String = ""
+        Dim sLetras As String = ""
+
         Comprobar_Datos = False
         Try
             If CType(oform.Items.Item("5").Specific, SAPbouiCOM.EditText).Value.ToString.StartsWith("CC") Then 'cardcode contado no
@@ -367,6 +370,36 @@ Public Class EXO_OCRD
                         objGlobal.SBOApp.StatusBar.SetText(sMensaje, SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Error)
                         Exit Function
                     End If
+
+                    strCIF = CType(oform.Items.Item("41").Specific, SAPbouiCOM.EditText).Value.ToString
+                    sLetras = Left(sLetras, 1)
+                    If IsNumeric(sLetras) Then
+                        objGlobal.SBOApp.StatusBar.SetText("CIF/NIF debe empezar por los 2 primeros digitos del pais", SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Error)
+                        Exit Function
+                    End If
+
+                    sLetras = Mid(strCIF, 2, 1)
+                    If IsNumeric(sLetras) Then
+                        objGlobal.SBOApp.StatusBar.SetText("CIF/NIF debe empezar por los 2 primeros digitos del pais", SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Error)
+                        Exit Function
+                    End If
+
+                    'si no empieza con 2 digtiso letras no dejo continuar
+
+                    If Left(strCIF.Trim.ToString.ToUpper, 2) = "ES" And CType(oform.Items.Item("530001024").Specific, SAPbouiCOM.ComboBox).Selected.Value = "1" Then
+                        'comprobar que 
+                        If strCIF.Length < 11 Then
+                            objGlobal.SBOApp.StatusBar.SetText("El número de dígitos en lo CIF/NIF debe ser 11 obligatoriamente", SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Error)
+                            Exit Function
+                        End If
+                        If Comprobar_CIF_NIF(objGlobal, strCIF) = False Then
+                            Exit Function
+                        End If
+
+                    End If
+
+
+
                 End If
                 Comprobar_Datos = True
             Else
@@ -394,6 +427,35 @@ Public Class EXO_OCRD
                         objGlobal.SBOApp.StatusBar.SetText(sMensaje, SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Error)
                         Exit Function
                     End If
+
+                    strCIF = CType(oform.Items.Item("41").Specific, SAPbouiCOM.EditText).Value.ToString
+                    'si no empieza con 2 digtiso letras no dejo continuar
+
+                    sLetras = Left(sLetras, 1)
+                    If IsNumeric(sLetras) Then
+                        objGlobal.SBOApp.StatusBar.SetText("CIF/NIF debe empezar por los 2 primeros digitos del pais", SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Error)
+                        Exit Function
+                    End If
+
+                    sLetras = Mid(strCIF, 2, 1)
+                    If IsNumeric(sLetras) Then
+                        objGlobal.SBOApp.StatusBar.SetText("CIF/NIF debe empezar por los 2 primeros digitos del pais", SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Error)
+                        Exit Function
+                    End If
+
+                    If Left(strCIF.Trim.ToString.ToUpper, 2) = "ES" And CType(oform.Items.Item("530001024").Specific, SAPbouiCOM.ComboBox).Selected.Value = "1" Then
+                        'comprobar que 
+                        If strCIF.Length < 11 Then
+                            objGlobal.SBOApp.StatusBar.SetText("El número de dígitos en lo CIF/NIF debe ser 11 obligatoriamente", SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Error)
+                            Exit Function
+                        End If
+                        If Comprobar_CIF_NIF(objGlobal, strCIF) = False Then
+                            Exit Function
+                        End If
+
+                    End If
+
+
 
                     'telefonos
                     If CType(oform.Items.Item("43").Specific, SAPbouiCOM.EditText).Value.ToString = "" And CType(oform.Items.Item("45").Specific, SAPbouiCOM.EditText).Value.ToString = "" And CType(oform.Items.Item("51").Specific, SAPbouiCOM.EditText).Value.ToString = "" Then
@@ -676,4 +738,39 @@ Public Class EXO_OCRD
             EXO_CleanCOM.CLiberaCOM.liberaCOM(CType(oRs, Object))
         End Try
     End Function
+
+    Public Shared Function Comprobar_CIF_NIF(ByRef oObjGlobal As EXO_UIAPI.EXO_UIAPI, ByVal sValor As String) As Boolean
+        Comprobar_CIF_NIF = False
+        Dim oRs As SAPbobsCOM.Recordset = Nothing
+        Dim sSQL As String = ""
+        Try
+            oRs = CType(oObjGlobal.compañia.GetBusinessObject(SAPbobsCOM.BoObjectTypes.BoRecordset), SAPbobsCOM.Recordset)
+            'Validamos el CIF o NIF
+            If oObjGlobal.compañia.DbServerType = SAPbobsCOM.BoDataServerTypes.dst_HANADB Then
+                sSQL = "SELECT ""EXO_VALIDAR_NIF_CIF""(RTRIM(LTRIM('" & sValor & "'))) ""Es_CIFNIF_OK"" FROM DUMMY;"
+            Else
+                sSQL = "SELECT [dbo].[EXO_VALIDAR_NIF_CIF](RTRIM(LTRIM('" & sValor & "'))) ""Es_CIFNIF_OK"" "
+            End If
+            oRs.DoQuery(sSQL)
+
+            If oRs.RecordCount > 0 Then
+                If CInt(oRs.Fields.Item("Es_CIFNIF_OK").Value.ToString) = 0 Then
+                    oObjGlobal.SBOApp.StatusBar.SetText("(EXO) - El CIF/NIF " & sValor & " no es válido.", SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Error)
+                    oObjGlobal.SBOApp.MessageBox("El CIF/NIF " & sValor & " no es válido.")
+                    Exit Function
+                End If
+            Else
+                Throw New Exception("No se ha encontrado función EXO_VALIDAR_NIF_CIF")
+                Exit Function
+            End If
+            Comprobar_CIF_NIF = True
+        Catch exCOM As System.Runtime.InteropServices.COMException
+            Throw exCOM
+        Catch ex As Exception
+            Throw ex
+        Finally
+            EXO_CleanCOM.CLiberaCOM.liberaCOM(CType(oRs, Object))
+        End Try
+    End Function
+
 End Class
