@@ -386,7 +386,7 @@ Public Class EXO_OCRD
 
                     'si no empieza con 2 digtiso letras no dejo continuar
 
-                    If Left(strCIF.Trim.ToString.ToUpper, 2) = "ES" And CType(oform.Items.Item("39").Specific, SAPbouiCOM.EditText).Value.ToString.Trim = "1" Then 'CType(oform.Items.Item("530001024").Specific, SAPbouiCOM.ComboBox).Selected.Value = "1" Then
+                    If Left(strCIF.Trim.ToString.ToUpper, 2) = "ES" And CType(oform.Items.Item("39").Specific, SAPbouiCOM.EditText).Value.ToString.Trim <> "1" Then 'CType(oform.Items.Item("530001024").Specific, SAPbouiCOM.ComboBox).Selected.Value = "1" Then
                         'comprobar que 
                         If strCIF.Length < 11 Then
                             objGlobal.SBOApp.StatusBar.SetText("El número de dígitos en lo CIF/NIF debe ser 11 obligatoriamente", SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Error)
@@ -443,7 +443,7 @@ Public Class EXO_OCRD
                         Exit Function
                     End If
 
-                    If Left(strCIF.Trim.ToString.ToUpper, 2) = "ES" And CType(oform.Items.Item("530001024").Specific, SAPbouiCOM.ComboBox).Selected.Value = "1" Then
+                    If Left(strCIF.Trim.ToString.ToUpper, 2) = "ES" And CType(oform.Items.Item("39").Specific, SAPbouiCOM.EditText).Value.ToString.Trim <> "1" Then 'CType(oform.Items.Item("530001024").Specific, SAPbouiCOM.ComboBox).Selected.Value = "1" Then
                         'comprobar que 
                         If strCIF.Length < 11 Then
                             objGlobal.SBOApp.StatusBar.SetText("El número de dígitos en lo CIF/NIF debe ser 11 obligatoriamente", SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Error)
