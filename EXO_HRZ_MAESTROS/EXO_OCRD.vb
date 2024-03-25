@@ -654,21 +654,22 @@ Public Class EXO_OCRD
                     'T0."QryGroup1", T0."QryGroup2", T0."QryGroup3"
                     intNumProp = 0
                     'recorrer el matrix
-                    For i As Integer = 1 To 3
-                        If CType(CType(oform.Items.Item("136").Specific, Matrix).Columns.Item("2").Cells.Item(i).Specific, CheckBox).Checked = True Then
-                            intNumProp = intNumProp + 1
-
+                    For i As Integer = 1 To 6
+                        If i = 1 Or i = 2 Or i = 3 Or i = 6 Then
+                            If CType(CType(oform.Items.Item("136").Specific, Matrix).Columns.Item("2").Cells.Item(i).Specific, CheckBox).Checked = True Then
+                                intNumProp = intNumProp + 1
+                            End If
                         End If
                     Next
 
 
                     If intNumProp > 1 Then
-                        sMensaje = "Sólo debe marcar una de las tres Facturaciones: Facturación INMEDIATA, Facturación QUINCENAL o Facturación MENSUAL"
+                        sMensaje = "Sólo debe marcar una de las cuatro Facturaciones: Facturación INMEDIATA, Facturación QUINCENAL, Facturación MENSUAL o Factura electrónica."
                         objGlobal.SBOApp.StatusBar.SetText(sMensaje, SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Error)
                         Exit Function
                     Else
                         If intNumProp = 0 Then
-                            sMensaje = "Debe marcar una de las tres Facturaciones: Facturación INMEDIATA, Facturación QUINCENAL o Facturación MENSUAL"
+                            sMensaje = "Debe marcar una de las cuatro Facturaciones: Facturación INMEDIATA, Facturación QUINCENAL, Facturación MENSUAL o Factura electrónica."
                             objGlobal.SBOApp.StatusBar.SetText(sMensaje, SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Error)
                             Exit Function
                         End If
